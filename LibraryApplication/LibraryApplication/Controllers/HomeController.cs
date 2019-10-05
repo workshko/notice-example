@@ -18,7 +18,23 @@ namespace LibraryApplication.Controllers
         // GET: Home
         public ActionResult Index()
         {
-            return View(db.Books.ToList());
+
+            int maxListCount = 3;
+            int pageNum = 1;
+
+            if (Request.QueryString["page"] != null)
+                pageNum = Convert.ToInt32(Request.QueryString["page"]);
+
+            var books = db.Books.OrderBy(x=>x.Book_U)
+                                .Skip(maxListCount * (pageNum - 1))
+                                .Take(maxListCount).ToList();
+
+            ViewBag.PageNum = pageNum;
+            ViewBag.TotalCount = db.Books.Count();   //전체 데이터 갯수
+            ViewBag.ListScount = maxListCount;     //한 페이지에 보여지는 
+
+
+            return View(books);
         }
 
         // GET: Home/Details/5
@@ -78,9 +94,6 @@ namespace LibraryApplication.Controllers
             return View(book);
         }
 
-        // POST: Home/Edit/5
-        // 초과 게시 공격으로부터 보호하려면 바인딩하려는 특정 속성을 사용하도록 설정하십시오. 
-        // 자세한 내용은 https://go.microsoft.com/fwlink/?LinkId=317598을(를) 참조하십시오.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Book_U,Title,Writer,Summary,Publisher,Published_date")] Book book)
